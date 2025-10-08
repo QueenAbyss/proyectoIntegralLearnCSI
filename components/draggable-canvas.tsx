@@ -372,18 +372,44 @@ export function DraggableCanvas({
       ctx.fillText(value.toString(), x, height - 80)
     }
     
-    // Y-axis labels (simplified)
+    // Y-axis labels (dynamic based on function range)
     ctx.textAlign = "right"
-    for (let i = 0; i <= 4; i++) {
-      const y = 50 + (i / 4) * (height - 150)
-      const value = Math.round(i * 2)
-      ctx.fillText(value.toString(), 90, y + 5)
+    ctx.fillStyle = "#22C55E"
+    ctx.font = "14px Arial"
+    
+    // Calculate the range of the function over the current interval
+    const a = Array.isArray(leftLimit) ? leftLimit[0] : leftLimit
+    const b = Array.isArray(rightLimit) ? rightLimit[0] : rightLimit
+    const func = functions[currentFunction]
+    
+    // Sample the function to find min and max values
+    let minY = Infinity
+    let maxY = -Infinity
+    const samples = 100
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (i / samples) * (b - a)
+      const y = func(x)
+      minY = Math.min(minY, y)
+      maxY = Math.max(maxY, y)
+    }
+    
+    // Add some padding
+    const padding = (maxY - minY) * 0.1
+    minY -= padding
+    maxY += padding
+    
+    // Draw Y-axis labels with proper spacing (mathematically correct)
+    const numLabels = 6
+    for (let i = 0; i <= numLabels; i++) {
+      const y = 50 + (i / numLabels) * (height - 150)
+      // ✅ CORREGIDO: Invertir el orden para que los valores altos estén arriba
+      const value = maxY - (i / numLabels) * (maxY - minY)
+      const roundedValue = Math.round(value * 10) / 10 // Round to 1 decimal place
+      ctx.fillText(roundedValue.toString(), 90, y + 5)
     }
 
     // Draw magical rainbow fence (function curve) - Dynamic based on current limits
-    const func = functions[currentFunction]
-    const a = Array.isArray(leftLimit) ? leftLimit[0] : leftLimit
-    const b = Array.isArray(rightLimit) ? rightLimit[0] : rightLimit
+    // Using the same variables already defined above
 
     // Create rainbow gradient for the fence
     const rainbowGradient = ctx.createLinearGradient(100, 0, width - 100, 0)
