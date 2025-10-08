@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, RotateCcw, BookOpen, MousePointer, Hand, Settings, ChevronDown, ChevronUp } from "lucide-react"
+import { Play, Pause, RotateCcw, BookOpen, MousePointer, Hand, ChevronDown, ChevronUp } from "lucide-react"
 import { TutorialSystem, type TutorialStep } from "@/components/tutorial-system"
 import { DraggableCanvas } from "@/components/draggable-canvas"
 import { ErrorVerification } from "@/components/error-verification"
@@ -290,8 +290,8 @@ export default function RiemannGarden() {
     }
   }, [isPlaying, animationSpeed])
 
-  // Function calculations
-  const calculateRiemannSum = useCallback(() => {
+  // Optimized mathematical calculations with useMemo
+  const riemannSum = useMemo(() => {
     const a = leftLimit[0]
     const b = rightLimit[0]
     const n = Math.floor(partitions[0])
@@ -316,7 +316,7 @@ export default function RiemannGarden() {
     return sum
   }, [currentFunction, leftLimit, rightLimit, partitions, approximationType])
 
-  const calculateExactIntegral = useCallback(() => {
+  const exactIntegral = useMemo(() => {
     const a = leftLimit[0]
     const b = rightLimit[0]
 
@@ -332,20 +332,16 @@ export default function RiemannGarden() {
     }
   }, [currentFunction, leftLimit, rightLimit])
 
-  const getError = useCallback(() => {
-    return Math.abs(calculateRiemannSum() - calculateExactIntegral())
-  }, [calculateRiemannSum, calculateExactIntegral])
+  const error = useMemo(() => {
+    return Math.abs(riemannSum - exactIntegral)
+  }, [riemannSum, exactIntegral])
 
-  const isApproximationGood = useCallback(() => {
-    return getError() < 0.1
-  }, [getError])
+  const isApproximationGood = useMemo(() => {
+    return error < 0.1
+  }, [error])
 
-  // Display functions
-  const getFunctionDisplay = useCallback(() => {
-    const a = leftLimit[0]
-    const b = rightLimit[0]
-    const integralSymbol = "∫"
-    
+  // Optimized display functions with useMemo
+  const functionDisplay = useMemo(() => {
     switch (currentFunction) {
       case "quadratic":
         return `f(x) = 0.5x² + 1`
@@ -358,13 +354,13 @@ export default function RiemannGarden() {
     }
   }, [currentFunction])
 
-  const getIntegralDisplay = useCallback(() => {
+  const integralDisplay = useMemo(() => {
     const a = leftLimit[0]
     const b = rightLimit[0]
     return `∫[${a.toFixed(1)}, ${b.toFixed(1)}] f(x)dx`
   }, [leftLimit, rightLimit])
 
-  const getFunctionName = () => {
+  const functionName = useMemo(() => {
     switch (currentFunction) {
       case "quadratic":
         return "Parábola Mágica"
@@ -375,9 +371,9 @@ export default function RiemannGarden() {
       default:
         return "Función"
     }
-  }
+  }, [currentFunction])
 
-  // Helper function for calculating Riemann sum over an interval
+  // Optimized helper function for calculating Riemann sum over an interval
   const calculateRiemannSumForInterval = useCallback((start: number, end: number) => {
     const n = Math.floor(partitions[0])
     const dx = (end - start) / n
@@ -401,10 +397,7 @@ export default function RiemannGarden() {
     return sum
   }, [currentFunction, partitions, approximationType])
 
-  // Demo calculations for properties
-  const riemannSum = calculateRiemannSum()
-  const exactIntegral = calculateExactIntegral()
-  const error = getError()
+  // Demo calculations for properties (using optimized values)
 
   const demonstrateLinearity = useMemo(() => {
     const originalSum = riemannSum
@@ -615,18 +608,18 @@ export default function RiemannGarden() {
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-blue-100 rounded-lg">
                     <div className="text-sm text-blue-600 mb-1">Aproximación de Riemann</div>
-                    <div className="text-2xl font-bold text-blue-800">{calculateRiemannSum().toFixed(4)}</div>
+                    <div className="text-2xl font-bold text-blue-800">{riemannSum.toFixed(4)}</div>
                     <div className="text-xs text-blue-500 mt-1">Σf(xi)·Δx con {partitions[0]} términos</div>
                   </div>
                   <div className="text-center p-4 bg-green-100 rounded-lg">
                     <div className="text-sm text-green-600 mb-1">Integral Exacta</div>
-                    <div className="text-2xl font-bold text-green-800">{calculateExactIntegral().toFixed(4)}</div>
+                    <div className="text-2xl font-bold text-green-800">{exactIntegral.toFixed(4)}</div>
                     <div className="text-xs text-green-500 mt-1">Teorema Fundamental del Cálculo</div>
                   </div>
                   <div className="text-center p-4 bg-purple-100 rounded-lg">
                     <div className="text-sm text-purple-600 mb-1">Error</div>
-                    <div className="text-2xl font-bold text-purple-800">{getError().toFixed(4)}</div>
-                    {isApproximationGood() && <Badge className="mt-1 bg-green-500">¡Excelente!</Badge>}
+                    <div className="text-2xl font-bold text-purple-800">{error.toFixed(4)}</div>
+                    {isApproximationGood && <Badge className="mt-1 bg-green-500">¡Excelente!</Badge>}
                     <div className="text-xs text-purple-500 mt-1">|Aproximación - Exacta|</div>
                   </div>
                 </div>
@@ -634,9 +627,9 @@ export default function RiemannGarden() {
                 {/* Error Verification */}
                 <div className="mt-4">
                   <ErrorVerification
-                    riemannSum={calculateRiemannSum()}
-                    exactIntegral={calculateExactIntegral()}
-                    error={getError()}
+                    riemannSum={riemannSum}
+                    exactIntegral={exactIntegral}
+                    error={error}
                     partitions={partitions[0]}
                     onSuccess={() => {}}
                     onReset={() => {
@@ -962,12 +955,12 @@ export default function RiemannGarden() {
                   <div className="text-center mb-3">
                     <div className="p-2 bg-white/80 rounded-lg border border-green-300 inline-block">
                       <div className="text-xs text-green-600 mb-1">Función Actual:</div>
-                      <div className="text-sm font-bold text-green-800">{getFunctionDisplay()}</div>
-                      <div className="text-xs text-green-600">{getFunctionName()}</div>
+                      <div className="text-sm font-bold text-green-800">{functionDisplay}</div>
+                      <div className="text-xs text-green-600">{functionName}</div>
                       <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
                         <div className="text-xs text-blue-600 mb-1">Integral Dinámica:</div>
                         <div className="text-sm font-bold text-blue-800 flex items-center gap-2">
-                          {getIntegralDisplay()}
+                          {integralDisplay}
                           {isUpdating && (
                             <span className="text-orange-500 animate-spin">🔄</span>
                           )}
