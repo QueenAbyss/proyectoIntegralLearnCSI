@@ -577,12 +577,45 @@ export default function RiemannGarden() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Graph Area - Takes 2 columns */}
               <div className="lg:col-span-2">
+                {/* Function Display Card - Above the graph */}
+                <Card className="p-4 bg-white/90 backdrop-blur mb-4">
+                  <div className="text-center">
+                    <div className="p-3 bg-white/80 rounded-lg border border-green-300 inline-block">
+                      <div className="text-sm text-green-600 mb-1">Función Actual:</div>
+                      <div className="text-lg font-bold text-green-800">{functionDisplay}</div>
+                      <div className="text-sm text-green-600">{functionName}</div>
+                      <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
+                        <div className="text-sm text-blue-600 mb-1">Integral Dinámica:</div>
+                        <div className="text-lg font-bold text-blue-800 flex items-center gap-2">
+                          {integralDisplay}
+                          {isUpdating && (
+                            <span className="text-orange-500 animate-spin">🔄</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-blue-500">
+                          {isUpdating ? "Actualizando límites..." : "Límites actualizados en tiempo real"}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {mode === "free" && (
+                      <div className="mt-3 flex items-center justify-center gap-2 text-sm text-green-600">
+                        <Hand className="w-4 h-4" />
+                        <span>Arrastra los puntos rojos y azules para cambiar los límites de integración</span>
+                      </div>
+                    )}
+                    {isTransitioningToFree && (
+                      <div className="mt-3 flex items-center justify-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <div className="animate-spin">🔄</div>
+                        <span>¡Tutorial completado! Activando modo libre...</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
                 <Card className="p-6 bg-white/90 backdrop-blur">
                   <div className="text-center mb-4">
                     <h2 className="text-xl font-bold text-green-800 mb-2">Visualización Mágica</h2>
-                    <p className="text-green-600 text-sm">
-                      Arrastra los puntos rojos y azules para cambiar los límites de integración
-                    </p>
                   </div>
                   
                   <DraggableCanvas
@@ -950,41 +983,6 @@ export default function RiemannGarden() {
                   </Card>
                 )}
 
-                {/* Function Display */}
-                <Card className="p-3 bg-white/90 backdrop-blur">
-                  <div className="text-center mb-3">
-                    <div className="p-2 bg-white/80 rounded-lg border border-green-300 inline-block">
-                      <div className="text-xs text-green-600 mb-1">Función Actual:</div>
-                      <div className="text-sm font-bold text-green-800">{functionDisplay}</div>
-                      <div className="text-xs text-green-600">{functionName}</div>
-                      <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                        <div className="text-xs text-blue-600 mb-1">Integral Dinámica:</div>
-                        <div className="text-sm font-bold text-blue-800 flex items-center gap-2">
-                          {integralDisplay}
-                          {isUpdating && (
-                            <span className="text-orange-500 animate-spin">🔄</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-blue-500">
-                          {isUpdating ? "Actualizando límites..." : "Límites actualizados en tiempo real"}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {mode === "free" && (
-                      <div className="mt-2 flex items-center justify-center gap-2 text-xs text-green-600">
-                        <Hand className="w-3 h-3" />
-                        <span>Arrastra los puntos rojos y azules para cambiar los límites de integración</span>
-                      </div>
-                    )}
-                    {isTransitioningToFree && (
-                      <div className="mt-2 flex items-center justify-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-200">
-                        <div className="animate-spin">🔄</div>
-                        <span>¡Tutorial completado! Activando modo libre...</span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
               </div>
             </div>
 
