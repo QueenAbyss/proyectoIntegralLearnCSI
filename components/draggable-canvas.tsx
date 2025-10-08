@@ -428,11 +428,17 @@ export function DraggableCanvas({
     ctx.lineWidth = 6
     ctx.beginPath()
 
-    for (let x = a; x <= b; x += 0.1) {
-      const screenX = 100 + ((x - a) / (b - a)) * (width - 200)
+    // ✅ CORREGIDO: Manejar correctamente cuando a > b (límites negativos)
+    const startX = Math.min(a, b)
+    const endX = Math.max(a, b)
+    const step = (endX - startX) / 200 // 200 puntos para suavidad
+    
+    for (let i = 0; i <= 200; i++) {
+      const x = startX + i * step
+      const screenX = 100 + ((x - startX) / (endX - startX)) * (width - 200)
       const screenY = height - 100 - func(x) * 40
 
-      if (x === a) {
+      if (i === 0) {
         ctx.moveTo(screenX, screenY)
       } else {
         ctx.lineTo(screenX, screenY)
@@ -442,8 +448,9 @@ export function DraggableCanvas({
 
     // Add magical sparkles along the fence
     ctx.fillStyle = "#FFD700"
-    for (let x = a; x <= b; x += 0.5) {
-      const screenX = 100 + ((x - a) / (b - a)) * (width - 200)
+    for (let i = 0; i <= 200; i += 10) {
+      const x = startX + i * step
+      const screenX = 100 + ((x - startX) / (endX - startX)) * (width - 200)
       const screenY = height - 100 - func(x) * 40
       ctx.beginPath()
       ctx.arc(screenX, screenY, 3, 0, 2 * Math.PI)
@@ -490,9 +497,11 @@ export function DraggableCanvas({
         }
 
         const height_rect = func(x)
-        const screenX = 100 + ((a + i * dx - a) / (b - a)) * (width - 200)
+        // ✅ CORREGIDO: Usar la misma lógica que la función para consistencia
+        const rectX = a + i * dx
+        const screenX = 100 + ((rectX - startX) / (endX - startX)) * (width - 200)
         const screenY = height - 100
-        const rectWidth = (dx / (b - a)) * (width - 200)
+        const rectWidth = (dx / (endX - startX)) * (width - 200)
         const rectHeight = height_rect * 40
 
         // Create magical flower pot colors for kids
@@ -587,7 +596,8 @@ export function DraggableCanvas({
       // Show additivity by highlighting middle division
       if (n >= 4) {
         const midPoint = Math.floor(n / 2)
-        const midScreenX = 100 + ((a + midPoint * dx - a) / (b - a)) * (width - 200)
+        const midX = a + midPoint * dx
+        const midScreenX = 100 + ((midX - startX) / (endX - startX)) * (width - 200)
 
         ctx.strokeStyle = "rgba(255, 215, 0, 0.8)"
         ctx.lineWidth = 3
