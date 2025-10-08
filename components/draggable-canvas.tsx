@@ -363,13 +363,17 @@ export function DraggableCanvas({
     ctx.font = "bold 16px Arial"
     ctx.textAlign = "center"
     
-    // X-axis labels (simplified) - Dynamic based on current limits
-    for (let i = 0; i <= 5; i++) {
-      const x = 100 + (i / 5) * (width - 200)
-      const leftVal = Array.isArray(leftLimit) ? leftLimit[0] : leftLimit
-      const rightVal = Array.isArray(rightLimit) ? rightLimit[0] : rightLimit
-      const value = Math.round(leftVal + (i / 5) * (rightVal - leftVal))
-      ctx.fillText(value.toString(), x, height - 80)
+    // X-axis labels (improved) - Dynamic based on current limits
+    const leftVal = Array.isArray(leftLimit) ? leftLimit[0] : leftLimit
+    const rightVal = Array.isArray(rightLimit) ? rightLimit[0] : rightLimit
+    const numXLabels = 5
+    
+    for (let i = 0; i <= numXLabels; i++) {
+      const x = 100 + (i / numXLabels) * (width - 200)
+      const value = leftVal + (i / numXLabels) * (rightVal - leftVal)
+      // ✅ CORREGIDO: Mostrar valores decimales para evitar repeticiones
+      const roundedValue = Math.round(value * 10) / 10 // 1 decimal place
+      ctx.fillText(roundedValue.toString(), x, height - 80)
     }
     
     // Y-axis labels (dynamic based on function range)
