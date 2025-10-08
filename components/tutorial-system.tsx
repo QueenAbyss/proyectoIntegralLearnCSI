@@ -61,33 +61,31 @@ export function TutorialSystem({
     }
   }, [currentStep, isVisible, currentStepData])
 
+  // ✅ CORREGIDO: Reset del estado en cada paso nuevo (como en el backup que funciona)
   useEffect(() => {
-    console.log("[v0] Resetting hasInteracted for step:", currentStep)
-    setHasInteracted(false)
+    setHasInteracted(false)  // ← Resetea la interacción en cada paso nuevo
     setShowHint(false)
   }, [currentStep])
 
+  // ✅ CORREGIDO: Detección de interacciones específicas (como en el backup que funciona)
   useEffect(() => {
     if (!isVisible || !currentStepData || currentStepData.isObservationOnly) return
 
     const checkInteraction = () => {
+      // Paso 4: Detectar cambio en slider de particiones
       if (currentStep === 4 && partitions && partitions[0] !== 8) {
-        setHasInteracted(true)
-      } else if (currentStep === 3 && partitions && partitions[0] >= 40) {
-        setHasInteracted(true)
-      } else if (currentStep === 5 && leftLimit && rightLimit && (leftLimit[0] !== -2 || rightLimit[0] !== 4)) {
-        setHasInteracted(true)
-      } else if ((currentStep === 4 || currentStep === 5) && currentFunction && currentFunction !== "quadratic") {
-        setHasInteracted(true)
-      } else if (currentStep === 6 && approximationType && approximationType !== "middle") {
-        setHasInteracted(true)
-      } else if (currentStep === 5 && isAnimating) {
-        setHasInteracted(true)
+        console.log("[v0] Slider interaction detected, partitions:", partitions[0])
+        setHasInteracted(true)  // ← AQUÍ se habilita el botón
+      } 
+      // Paso 5: Detectar cambio en límites
+      else if (currentStep === 5 && leftLimit && rightLimit && (leftLimit[0] !== -2 || rightLimit[0] !== 4)) {
+        console.log("[v0] Limits interaction detected")
+        setHasInteracted(true)  // ← AQUÍ se habilita el botón
       }
     }
 
     checkInteraction()
-  }, [partitions, leftLimit, rightLimit, currentFunction, approximationType, isAnimating, currentStep, isVisible, currentStepData])
+  }, [partitions, leftLimit, rightLimit, currentStep, isVisible, currentStepData])
 
   useEffect(() => {
     if (!isVisible || !currentStepData) return
@@ -162,13 +160,29 @@ export function TutorialSystem({
   }, [currentStep, isVisible, currentStepData])
 
   const nextStep = () => {
-    console.log("[v0] Next step clicked, current:", currentStep, "total:", steps.length)
+    console.log("🚀🚀🚀 NEXT STEP CLICKED 🚀🚀🚀")
+    console.log("Current step:", currentStep)
+    console.log("Total steps:", steps.length)
+    console.log("Can proceed:", canProceed())
+    console.log("Has interacted:", hasInteracted)
+    console.log("Current step data:", currentStepData)
+    console.log("Is observation only:", currentStepData?.isObservationOnly)
+    console.log("Has requirement:", !!currentStepData?.requirement)
+    console.log("Has action:", !!currentStepData?.action)
+    
+    if (!canProceed()) {
+      console.log("❌ Cannot proceed - requirements not met")
+      return
+    }
+    
+    console.log("✅ Requirements met, proceeding...")
+    
     if (currentStep < steps.length) {
-      console.log("[v0] Moving to step:", currentStep + 1)
+      console.log("📈 Moving to step:", currentStep + 1)
       onStepChange(currentStep + 1)
       setShowHint(false)
     } else {
-      console.log("[v0] Completing tutorial")
+      console.log("🎉 Completing tutorial")
       onComplete()
     }
   }
@@ -181,17 +195,22 @@ export function TutorialSystem({
     }
   }
 
+  // ✅ CORREGIDO: Función canProceed() simplificada (como en el backup que funciona)
   const canProceed = () => {
+    // Si es un paso de solo observación, siempre puede continuar
     if (currentStepData?.isObservationOnly) {
+      console.log("[v0] Can proceed: observation step")
       return true
     }
 
-    // For steps that require interaction, check hasInteracted
+    // Si tiene un requirement personalizado, verifica la interacción
     if (currentStepData?.requirement) {
+      console.log("[v0] Can proceed:", hasInteracted, "hasInteracted:", hasInteracted)
       return hasInteracted
     }
 
-    // For all other steps, allow proceeding
+    // Si no tiene requirements, puede continuar
+    console.log("[v0] Can proceed: no requirement")
     return true
   }
 
@@ -199,8 +218,13 @@ export function TutorialSystem({
 
   return (
     <>
-      {/* Tutorial Overlay with pointer events for blocking */}
-      <div className="fixed inset-0 bg-black/10 z-40" style={{ pointerEvents: "none" }} />
+      {/* Tutorial Overlay - ✅ CORREGIDO: Overlay simple como en el backup que funciona */}
+      <div 
+        className="fixed inset-0 bg-black/10 z-40" 
+        style={{ 
+          pointerEvents: "none" // Permitir que todos los clics pasen a través
+        }}
+      />
 
       {/* Tutorial Card - Fixed positioning */}
       <div
@@ -210,7 +234,9 @@ export function TutorialSystem({
           top: 20,
           maxWidth: "380px",
           pointerEvents: "auto",
+          zIndex: 9999,
         }}
+        data-tutorial-card
       >
         <Card className="w-full p-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 shadow-2xl max-h-[80vh] overflow-y-auto">
           {/* Progress Bar */}
@@ -266,24 +292,32 @@ export function TutorialSystem({
             </div>
           )}
 
-          {/* Hint */}
-          {currentStepData.hint && (
-            <div className="mb-3">
-              <Button
-                onClick={() => setShowHint(!showHint)}
-                variant="outline"
-                size="sm"
-                className="text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100 h-7 w-full"
-              >
-                {showHint ? "Ocultar pista" : "💡 Necesito una pista"}
-              </Button>
-              {showHint && (
-                <div className="mt-2 p-2 bg-green-100 rounded-lg border border-green-200">
-                  <p className="text-green-700 text-xs leading-relaxed">{currentStepData.hint}</p>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Hint - ✅ CORREGIDO: Botón de pista siempre habilitado (como en el backup que funciona) */}
+          <div className="mb-3">
+            <Button
+              onClick={() => {
+                console.log("💡 Hint button clicked")
+                setShowHint(!showHint)
+              }}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 h-8 text-xs"
+            >
+              {showHint ? "Ocultar pista" : "💡 Necesito una pista"}
+            </Button>
+            {showHint && currentStepData.hint && (
+              <div className="mt-2 p-2 bg-green-100 rounded-lg border border-green-200">
+                <p className="text-green-700 text-xs leading-relaxed">{currentStepData.hint}</p>
+              </div>
+            )}
+            {showHint && !currentStepData.hint && (
+              <div className="mt-2 p-2 bg-yellow-100 rounded-lg border border-yellow-200">
+                <p className="text-yellow-700 text-xs leading-relaxed">
+                  💡 No hay pista específica para este paso, pero puedes experimentar libremente con los controles.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center pt-2">
@@ -300,12 +334,13 @@ export function TutorialSystem({
 
             <Button
               onClick={nextStep}
-              disabled={!canProceed()}
+              disabled={!canProceed()}  // ← CONDICIÓN PRINCIPAL: deshabilitado si canProceed() es false
               size="sm"
+              style={{ pointerEvents: canProceed() ? "auto" : "none" }}  // ← Bloquea clicks si está deshabilitado
               className={`flex items-center gap-1 h-8 text-xs ${
                 canProceed()
-                  ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-yellow-500 hover:bg-yellow-600 text-white"  // ← ESTILO HABILITADO
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"  // ← ESTILO DESHABILITADO
               }`}
             >
               {currentStep === steps.length ? "¡Completar!" : "Siguiente"}
@@ -322,6 +357,9 @@ export function TutorialSystem({
           </div>
         </Card>
       </div>
+
+      {/* ✅ CORREGIDO: Eliminar botón separado y overlays complejos */}
+      {/* Ya no necesitamos el botón separado ni overlays complicados */}
 
       <style jsx global>{`
         .tutorial-highlight {
