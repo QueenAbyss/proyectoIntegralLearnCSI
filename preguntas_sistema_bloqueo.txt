@@ -1,0 +1,64 @@
+PREGUNTAS ESPECÍFICAS PARA EL PROYECTO FUNCIONAL - SISTEMA DE BLOQUEO
+
+Hola, hemos implementado el sistema de bloqueo selectivo como me indicaste, pero AÚN NO FUNCIONA. Los elementos siguen siendo interactivos durante el tutorial. 
+
+Por favor, responde estas preguntas específicas sobre la implementación exacta:
+
+1. **¿Dónde exactamente se ejecuta el sistema de bloqueo?**
+   - ¿Se ejecuta en el componente principal (riemann-garden.tsx) o en TutorialSystem?
+   - ¿Hay algún useEffect específico que maneje el bloqueo?
+   - ¿Se ejecuta inmediatamente al iniciar el tutorial o hay algún delay?
+
+2. **¿Cómo se identifican EXACTAMENTE los elementos a bloquear?**
+   - ¿Qué selectores CSS específicos usas? (ej: 'button, input[type="range"], .slider-handle')
+   - ¿Hay algún atributo data específico que agregues a los elementos?
+   - ¿Cómo identificas los sliders de límites vs el slider de particiones?
+
+3. **¿Cómo se aplican los estilos de bloqueo?**
+   - ¿Usas solo `pointer-events: none` o también clases CSS?
+   - ¿Hay algún overlay o z-index específico?
+   - ¿Los elementos bloqueados cambian visualmente (opacity, grayscale)?
+
+4. **¿Hay algún timing específico?**
+   - ¿Se ejecuta el bloqueo antes o después de que se rendericen los elementos?
+   - ¿Hay algún setTimeout o delay?
+   - ¿Se re-ejecuta el bloqueo en cada cambio de paso?
+
+5. **¿Podrías proporcionar el código EXACTO del useEffect que maneja el bloqueo?**
+   - Incluyendo todos los selectores
+   - Incluyendo la lógica de identificación de elementos
+   - Incluyendo la aplicación de estilos
+
+6. **¿Hay algún CSS global que afecte el bloqueo?**
+   - ¿Hay estilos que puedan estar sobrescribiendo el bloqueo?
+   - ¿Hay algún !important necesario?
+
+PROBLEMA ACTUAL:
+- El tutorial se inicia correctamente
+- Los logs muestran que se ejecuta el sistema de bloqueo
+- Se detectan elementos interactivos (24 elementos)
+- Se aplican las clases "tutorial-blocked" y "pointer-events: none"
+- PERO los elementos siguen siendo interactivos
+- El slider de particiones se puede mover de 8 a 17
+- Los sliders de límites se pueden mover
+- Los botones de función se pueden clickear
+
+LOGS ACTUALES:
+```
+🚀 TutorialSystem COMPONENTE INICIADO: {isVisible: true, currentStep: 1, ...}
+🎯 RENDERIZANDO TutorialSystem: {tutorialActive: true, ...}
+🔍 TutorialSystem useEffect ejecutándose: {isVisible: true, ...}
+✅ Ejecutando sistema de bloqueo...
+⏰ Ejecutando bloqueo con delay...
+🔧 APLICANDO SISTEMA DE BLOQUEO...
+🔍 Elementos interactivos encontrados: 24
+🚫 Bloqueando elemento: BUTTON
+🚫 Bloqueando elemento: INPUT
+```
+
+PERO LOS ELEMENTOS SIGUEN SIENDO INTERACTIVOS.
+
+¿Qué está faltando en nuestra implementación?
+
+¡Gracias por la ayuda!
+

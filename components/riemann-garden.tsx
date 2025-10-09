@@ -160,9 +160,7 @@ const TUTORIAL_STEPS_ADVANCED: TutorialStep[] = [
     fairyMessage: "¡40 particiones! ¡Observa cómo el error se vuelve casi imperceptible!",
     hint: "🎯 Con 40 particiones, el error debería ser menor a 0.1. ¡La precisión aumenta cuadráticamente con el número de particiones!",
     requirement: (partitions: number[]) => {
-      console.log("[v0] Advanced: Checking partitions requirement:", partitions)
       const hasReached40 = partitions && partitions[0] >= 40
-      console.log("[v0] Advanced: Requirement result:", hasReached40)
       return hasReached40
     },
   },
@@ -194,9 +192,7 @@ const TUTORIAL_STEPS_ADVANCED: TutorialStep[] = [
     fairyMessage: "¡Cada tipo de aproximación da resultados diferentes! ¡Experimenta para encontrar el mejor!",
     hint: "🧙‍♂️ **Hechizo Izquierdo**: Usa el valor de la función en el extremo izquierdo de cada rectángulo. **Hechizo Derecho**: Usa el valor en el extremo derecho. **Hechizo Central**: Usa el valor en el punto medio. ¡El Central suele ser más preciso para funciones suaves!",
     requirement: (approximationType: string) => {
-      console.log("[v0] Advanced: Checking approximation type requirement:", approximationType)
       const hasChanged = approximationType && approximationType !== "middle"
-      console.log("[v0] Advanced: Approximation type requirement result:", hasChanged)
       return Boolean(hasChanged)
     },
   },
@@ -237,11 +233,13 @@ export default function RiemannGarden() {
   
   // Debug tutorial state
   useEffect(() => {
-    console.log("Tutorial state changed:", { tutorialActive, complexityLevel, tutorialStep, mode })
-    if (tutorialActive) {
-      console.log("Tutorial is active, current step:", tutorialStep)
-      console.log("Steps available:", complexityLevel === "basic" ? TUTORIAL_STEPS_BASIC.length : TUTORIAL_STEPS_ADVANCED.length)
-    }
+    console.log("🔍 Estado del tutorial:", { 
+      tutorialActive, 
+      tutorialStep, 
+      mode, 
+      complexityLevel,
+      isVisible: tutorialActive 
+    })
   }, [tutorialActive, complexityLevel, tutorialStep, mode])
 
   // Navigation handlers
@@ -257,10 +255,43 @@ export default function RiemannGarden() {
 
   // Tutorial management
   const startTutorial = useCallback(() => {
+    console.log("🔄 Iniciando tutorial - Reseteando valores...")
+    console.log("Estado antes del reset:", { tutorialActive, tutorialStep, mode, complexityLevel })
+    
+    // Reset inmediato
+    setPartitions([8])           // ← Resetea a 8 macetas
+    setLeftLimit([-2])          // ← Resetea límite izquierdo
+    setRightLimit([4])          // ← Resetea límite derecho
+    setCurrentFunction("quadratic")  // ← Resetea función
+    setApproximationType("middle")   // ← Resetea tipo de aproximación
+    // setHasInteracted(false) // ← Comentado porque no está definido
+    
+    // Reset con delay para asegurar que se aplique
+    setTimeout(() => {
+      setPartitions([8])
+      console.log("✅ Slider resetado a 8")
+    }, 100)
+    
     setTutorialActive(true)
-    setTutorialStep(0)
+    setTutorialStep(1)  // ← Cambiar de 0 a 1 para que coincida con los pasos del tutorial
     setMode("guided")
-  }, [])
+    console.log("✅ Tutorial iniciado - Valores reseteados")
+    console.log("Estado después del reset:", { tutorialActive: true, tutorialStep: 1, mode: "guided", complexityLevel })
+  }, []) // ← Simplificado para evitar bucles infinitos
+
+  // ✅ NUEVO: Forzar reset cuando se active el tutorial
+  useEffect(() => {
+    if (tutorialActive && tutorialStep === 1) {
+      console.log("🔄 Forzando reset en useEffect")
+      console.log("Partitions antes del reset:", partitions)
+      setPartitions([8])
+      setLeftLimit([-2])
+      setRightLimit([4])
+      setCurrentFunction("quadratic")
+      setApproximationType("middle")
+      console.log("Partitions después del reset:", [8])
+    }
+  }, [tutorialActive, tutorialStep]) // ← Removido 'partitions' para evitar bucle infinito
 
   const completeTutorial = useCallback(() => {
     setTutorialActive(false)
@@ -273,7 +304,6 @@ export default function RiemannGarden() {
   }, [])
 
   const handleTutorialStepChange = useCallback((step: number) => {
-    console.log("[DEBUG] handleTutorialStepChange called with step:", step)
     setTutorialStep(step)
   }, [])
 
@@ -678,120 +708,115 @@ export default function RiemannGarden() {
 
               {/* Controls Sidebar - Takes 1 column */}
               <div className="lg:col-span-1 space-y-4">
-                {/* Mode Selection */}
+      {/* Mode Selection */}
                 <Card className="p-3 bg-white/90 backdrop-blur">
-                  <div className="text-center mb-3">
+              <div className="text-center mb-3">
                     <h3 className="text-sm font-bold text-green-800 mb-2">Modo de Aprendizaje</h3>
                     <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={() => {
-                          setMode("guided")
-                          setTutorialActive(true)
-                          setTutorialStep(1)
-                        }}
-                        variant={mode === "guided" ? "default" : "outline"}
+        <Button
+                        onClick={startTutorial}
+          variant={mode === "guided" ? "default" : "outline"}
                         size="sm"
-                        className="flex items-center gap-2"
-                      >
+          className="flex items-center gap-2"
+        >
                         <BookOpen className="w-3 h-3" />
                         Guiado
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          console.log("Activating free mode")
-                          setMode("free")
-                          setTutorialActive(false)
-                          setTutorialStep(0)
-                        }}
-                        variant={mode === "free" ? "default" : "outline"}
+        </Button>
+        <Button
+          onClick={() => {
+            console.log("Activating free mode")
+            setMode("free")
+            setTutorialActive(false)
+            setTutorialStep(0)
+          }}
+          variant={mode === "free" ? "default" : "outline"}
                         size="sm"
-                        className="flex items-center gap-2"
-                      >
+          className="flex items-center gap-2"
+        >
                         <MousePointer className="w-3 h-3" />
                         Libre
-                      </Button>
-                    </div>
-                  </div>
+        </Button>
+                </div>
+      </div>
 
-                  {mode === "guided" && (
+      {mode === "guided" && (
                     <div className="space-y-2">
-                      <div className="text-center">
+                  <div className="text-center">
                         <h4 className="text-xs font-semibold text-green-700 mb-1">Nivel</h4>
                         <div className="flex flex-col gap-1">
-                          <Button
-                            onClick={() => {
-                              setComplexityLevel("basic")
-                              setTutorialActive(true)
-                              setTutorialStep(1)
-                            }}
-                            variant={complexityLevel === "basic" ? "default" : "outline"}
-                            size="sm"
+          <Button
+                        onClick={() => {
+                          setComplexityLevel("basic")
+                              startTutorial()
+                        }}
+            variant={complexityLevel === "basic" ? "default" : "outline"}
+                        size="sm"
                             className="text-xs"
-                          >
+          >
                             🌱 Básico
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setComplexityLevel("advanced")
-                              setTutorialActive(true)
-                              setTutorialStep(1)
-                            }}
-                            variant={complexityLevel === "advanced" ? "default" : "outline"}
-                            size="sm"
+          </Button>
+          <Button
+                        onClick={() => {
+                          setComplexityLevel("advanced")
+                              startTutorial()
+                        }}
+            variant={complexityLevel === "advanced" ? "default" : "outline"}
+                        size="sm"
                             className="text-xs"
-                          >
+          >
                             🌟 Avanzado
-                          </Button>
-                        </div>
-                      </div>
+          </Button>
                     </div>
-                  )}
-                </Card>
+                  </div>
+        </div>
+      )}
+          </Card>
 
-                {/* Function Selection */}
-                <Card className="p-3 bg-white/90 backdrop-blur">
+          {/* Function Selection */}
+                <Card id="function-selector" className="p-3 bg-white/90 backdrop-blur">
                   <h3 className="font-semibold mb-2 text-green-800 text-sm">Función del Jardín</h3>
-                  <div className="space-y-1">
-                    {Object.keys(functions).map((func) => (
-                      <Button
-                        key={func}
-                        onClick={() => setCurrentFunction(func as FunctionType)}
-                        variant={currentFunction === func ? "default" : "outline"}
+            <div className="space-y-1">
+              {Object.keys(functions).map((func) => (
+                <Button
+                  key={func}
+                    onClick={() => setCurrentFunction(func as FunctionType)}
+                  variant={currentFunction === func ? "default" : "outline"}
                         size="sm"
                         className="w-full justify-start text-xs"
                         disabled={false}
-                      >
-                        {func === "quadratic" && "🌺 Parábola Mágica"}
-                        {func === "sine" && "🌊 Onda Senoidal"}
-                        {func === "cubic" && "🌿 Curva Cúbica"}
-                      </Button>
-                    ))}
-                  </div>
-                </Card>
+                >
+                  {func === "quadratic" && "🌺 Parábola Mágica"}
+                  {func === "sine" && "🌊 Onda Senoidal"}
+                  {func === "cubic" && "🌿 Curva Cúbica"}
+                </Button>
+              ))}
+            </div>
+          </Card>
 
-                {/* Partitions Control */}
+          {/* Partitions Control */}
                 <Card className="p-3 bg-white/90 backdrop-blur">
                   <h3 className="font-semibold mb-2 text-green-800 text-sm">Número de Macetas</h3>
                   <div className="space-y-2">
-                    <Slider
-                      value={partitions}
-                      onValueChange={setPartitions}
-                      min={1}
-                      max={50}
-                      step={1}
-                      className="w-full"
-                    />
+              <Slider
+                      id="partitions-slider"
+                value={partitions}
+                  onValueChange={setPartitions}
+                  min={1}
+                max={50}
+                  step={1}
+                  className="w-full"
+              />
                     <div className="text-center text-xs text-green-600">{Math.floor(partitions[0])} macetas</div>
-                    <div className="text-center">
+              <div className="text-center">
                       {partitions[0] < 10 && <Badge variant="destructive" className="text-xs">Burda</Badge>}
                       {partitions[0] >= 10 && partitions[0] < 25 && <Badge variant="secondary" className="text-xs">Buena</Badge>}
                       {partitions[0] >= 25 && <Badge className="bg-green-500 text-xs">Excelente</Badge>}
-                    </div>
-                  </div>
-                </Card>
+              </div>
+            </div>
+          </Card>
 
                 {/* Animation Controls */}
-                <Card className="p-3 bg-white/90 backdrop-blur">
+          <Card className="p-3 bg-white/90 backdrop-blur">
                   <h3 className="font-semibold mb-2 text-green-800 text-sm">Animación</h3>
                   <div className="space-y-2">
                     <div className="flex gap-1">
@@ -834,163 +859,171 @@ export default function RiemannGarden() {
                 {/* Garden Controls */}
                 <Card className="p-3 bg-white/90 backdrop-blur">
                   <h3 className="font-semibold mb-2 text-green-800 text-sm">Controles del Jardín</h3>
-                  
-                  {/* Limits */}
-                  <div className="mb-3">
+            
+            {/* Limits */}
+                  <div id="limits" className="mb-3">
                     <h4 className="text-xs font-medium text-green-700 mb-1">Límites</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-green-600">Izquierdo</label>
-                        <Slider
-                          value={leftLimit}
-                          onValueChange={setLeftLimit}
-                          min={-10}
-                          max={10}
-                          step={0.1}
-                          className="w-full"
-                        />
-                        <div className="text-center text-xs text-green-600">a = {leftLimit[0].toFixed(1)}</div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-green-600">Derecho</label>
-                        <Slider
-                          value={rightLimit}
-                          onValueChange={setRightLimit}
-                          min={-10}
-                          max={10}
-                          step={0.1}
-                          className="w-full"
-                        />
-                        <div className="text-center text-xs text-green-600">b = {rightLimit[0].toFixed(1)}</div>
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <label className="text-xs text-green-600">Izquierdo</label>
+                  <Slider
+                    value={leftLimit}
+                    onValueChange={setLeftLimit}
+                    min={-10}
+                    max={10}
+                    step={0.1}
+                    className="w-full"
+                  />
+                  <div className="text-center text-xs text-green-600">a = {leftLimit[0].toFixed(1)}</div>
+                </div>
+                <div>
+                  <label className="text-xs text-green-600">Derecho</label>
+                  <Slider
+                    value={rightLimit}
+                    onValueChange={setRightLimit}
+                    min={-10}
+                    max={10}
+                    step={0.1}
+                    className="w-full"
+                  />
+                  <div className="text-center text-xs text-green-600">b = {rightLimit[0].toFixed(1)}</div>
+                </div>
+              </div>
+            </div>
 
-                  {/* Approximation Type */}
+            {/* Approximation Type */}
                   <div className="mb-2" id="approximation-type">
                     <h4 className="text-xs font-medium text-green-700 mb-1">Tipo de Hechizo</h4>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
+              <div className="grid grid-cols-3 gap-1">
+                {[
                         { key: "left", label: "⬅️", desc: "Hechizo Izquierdo" },
                         { key: "right", label: "➡️", desc: "Hechizo Derecho" },
                         { key: "middle", label: "🎯", desc: "Hechizo Central" },
-                      ].map((type) => (
-                        <Button
-                          key={type.key}
-                          onClick={() => setApproximationType(type.key as "left" | "right" | "middle")}
-                          variant={approximationType === type.key ? "default" : "outline"}
-                          size="sm"
+                ].map((type) => (
+                  <Button
+                    key={type.key}
+                    onClick={() => setApproximationType(type.key as "left" | "right" | "middle")}
+                    variant={approximationType === type.key ? "default" : "outline"}
+                    size="sm"
                           className="flex flex-col h-10 text-xs"
                           disabled={mode === "guided" && tutorialStep > 0 && tutorialStep !== 5 && tutorialStep !== 6}
-                        >
-                          <span>{type.label}</span>
-                          <span className="text-xs">{type.desc}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+                  >
+                    <span>{type.label}</span>
+                    <span className="text-xs">{type.desc}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
 
-                  <div className="p-2 bg-yellow-50 rounded border border-yellow-200">
-                    <p className="text-yellow-700 text-xs">
-                      💡 Arrastra los puntos rojos y azules en el gráfico
-                    </p>
-                  </div>
-                </Card>
+            <div className="p-2 bg-yellow-50 rounded border border-yellow-200">
+              <p className="text-yellow-700 text-xs">
+                💡 Arrastra los puntos rojos y azules en el gráfico
+              </p>
+            </div>
+          </Card>
 
                 {/* Configuration Panel - Only in Free Mode */}
                 {mode === "free" && (
-                  <Card className="p-3 bg-white/90 backdrop-blur">
+          <Card className="p-3 bg-white/90 backdrop-blur">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-purple-800 text-sm">⚙️ Configuración</h3>
-                        <Button
+                <Button
                           onClick={() => setShowConfigPanel(!showConfigPanel)}
                           variant="ghost"
-                          size="sm"
+                  size="sm"
                           className="text-xs p-1 h-6 w-6"
                         >
                           {showConfigPanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                        </Button>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          setCurrentFunction("quadratic")
-                          setPartitions([8])
-                          setLeftLimit([-2])
-                          setRightLimit([4])
-                          setApproximationType("middle")
-                          setIsPlaying(false)
-                        }}
-                        variant="outline"
-                        size="sm"
+                </Button>
+              </div>
+              <Button
+                onClick={() => {
+                  setCurrentFunction("quadratic")
+                  setPartitions([8])
+                  setLeftLimit([-2])
+                  setRightLimit([4])
+                  setApproximationType("middle")
+                  setIsPlaying(false)
+                }}
+                variant="outline"
+                size="sm"
                         className="text-xs"
-                      >
-                        🔄 Reset
-                      </Button>
-                    </div>
+              >
+                🔄 Reset
+              </Button>
+            </div>
 
                     {showConfigPanel && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-purple-700">Límite Izquierdo</label>
-                          <input
-                            type="number"
-                            value={leftLimit[0]}
-                            onChange={(e) => setLeftLimit([parseFloat(e.target.value) || -2])}
-                            className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
-                            step="0.1"
-                            min="-10"
-                            max="10"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-purple-700">Límite Derecho</label>
-                          <input
-                            type="number"
-                            value={rightLimit[0]}
-                            onChange={(e) => setRightLimit([parseFloat(e.target.value) || 4])}
-                            className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
-                            step="0.1"
-                            min="-10"
-                            max="10"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-purple-700">Macetas</label>
-                          <input
-                            type="number"
-                            value={partitions[0]}
-                            onChange={(e) => setPartitions([parseInt(e.target.value) || 8])}
-                            className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
-                            min="1"
-                            max="50"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-purple-700">Función</label>
-                          <select
-                            value={currentFunction}
-                            onChange={(e) => setCurrentFunction(e.target.value as FunctionType)}
-                            className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
-                          >
-                            <option value="quadratic">🌺 Parábola</option>
-                            <option value="sine">🌊 Seno</option>
-                            <option value="cubic">🌿 Cúbica</option>
-                          </select>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                )}
-
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-purple-700">Límite Izquierdo</label>
+                <input
+                  type="number"
+                  value={leftLimit[0]}
+                  onChange={(e) => setLeftLimit([parseFloat(e.target.value) || -2])}
+                  className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
+                  step="0.1"
+                  min="-10"
+                  max="10"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-purple-700">Límite Derecho</label>
+                <input
+                  type="number"
+                  value={rightLimit[0]}
+                  onChange={(e) => setRightLimit([parseFloat(e.target.value) || 4])}
+                  className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
+                  step="0.1"
+                  min="-10"
+                  max="10"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-purple-700">Macetas</label>
+                <input
+                  type="number"
+                  value={partitions[0]}
+                  onChange={(e) => setPartitions([parseInt(e.target.value) || 8])}
+                  className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
+                  min="1"
+                  max="50"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-purple-700">Función</label>
+                <select
+                  value={currentFunction}
+                  onChange={(e) => setCurrentFunction(e.target.value as FunctionType)}
+                  className="w-full px-2 py-1 text-xs border border-purple-300 rounded"
+                >
+                  <option value="quadratic">🌺 Parábola</option>
+                  <option value="sine">🌊 Seno</option>
+                  <option value="cubic">🌿 Cúbica</option>
+                </select>
               </div>
             </div>
+                    )}
+          </Card>
+                )}
+
+        </div>
+        </div>
 
         </div>
       )}
 
         {/* Tutorial System - Always visible when active */}
         {tutorialActive && (
+          <>
+            {console.log("🎯 RENDERIZANDO TutorialSystem:", {
+              tutorialActive,
+              tutorialStep,
+              complexityLevel,
+              isVisible: tutorialActive,
+              steps: complexityLevel === "basic" ? TUTORIAL_STEPS_BASIC : TUTORIAL_STEPS_ADVANCED
+            })}
       <TutorialSystem
             steps={complexityLevel === "basic" ? TUTORIAL_STEPS_BASIC : TUTORIAL_STEPS_ADVANCED}
         currentStep={tutorialStep}
@@ -1003,6 +1036,7 @@ export default function RiemannGarden() {
             approximationType={approximationType}
             isVisible={tutorialActive}
       />
+          </>
         )}
       </div>
     </div>
