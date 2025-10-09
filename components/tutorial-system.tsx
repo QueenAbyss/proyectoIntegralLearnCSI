@@ -63,7 +63,7 @@ export function TutorialSystem({
 
   // ✅ CORREGIDO: Reset del estado en cada paso nuevo (como en el backup que funciona)
   useEffect(() => {
-    setHasInteracted(false)  // ← Resetea la interacción en cada paso nuevo
+    setHasInteracted(false)  // ← Reset normal para todos los pasos
     setShowHint(false)
   }, [currentStep])
 
@@ -72,20 +72,41 @@ export function TutorialSystem({
     if (!isVisible || !currentStepData || currentStepData.isObservationOnly) return
 
     const checkInteraction = () => {
-      // Paso 4: Detectar cambio en slider de particiones
-      if (currentStep === 4 && partitions && partitions[0] !== 8) {
+      // Paso 3: Detectar 40+ particiones (modo avanzado)
+      if (currentStep === 3 && partitions && partitions[0] >= 40) {
+        console.log("[v0] Step 3 interaction detected, partitions:", partitions[0])
+        setHasInteracted(true)  // ← AQUÍ se habilita el botón
+      }
+      // Paso 4: Detectar cambio de función (modo avanzado) - SOLO cuando cambie a "sine"
+      else if (currentStep === 4 && currentFunction && currentFunction === "sine") {
+        console.log("[v0] Step 4 function change detected to sine:", currentFunction)
+        setHasInteracted(true)  // ← AQUÍ se habilita el botón
+      }
+      // Paso 4: Detectar cambio en slider de particiones (SOLO nivel básico)
+      else if (currentStep === 4 && partitions && partitions[0] !== 8 && currentStepData.target === "#partitions-slider") {
         console.log("[v0] Slider interaction detected, partitions:", partitions[0])
         setHasInteracted(true)  // ← AQUÍ se habilita el botón
       } 
-      // Paso 5: Detectar cambio en límites
-      else if (currentStep === 5 && leftLimit && rightLimit && (leftLimit[0] !== -2 || rightLimit[0] !== 4)) {
-        console.log("[v0] Limits interaction detected")
+      // Paso 5: Detectar cambio en tipo de aproximación (modo avanzado)
+      else if (currentStep === 5 && approximationType && approximationType !== "middle") {
+        console.log("[v0] Step 5 approximation type change detected:", approximationType)
         setHasInteracted(true)  // ← AQUÍ se habilita el botón
       }
     }
 
     checkInteraction()
-  }, [partitions, leftLimit, rightLimit, currentStep, isVisible, currentStepData])
+  }, [partitions, leftLimit, rightLimit, currentFunction, approximationType, currentStep, isVisible, currentStepData])
+
+  // ✅ NUEVO: Detectar cambio real de función en paso 4 - SOLO cuando cambie de otra función a sine
+  const [previousFunction, setPreviousFunction] = useState<string>("")
+  
+  useEffect(() => {
+    if (currentStep === 4 && currentFunction === "sine" && previousFunction !== "sine" && previousFunction !== "") {
+      console.log("🎯 REAL FUNCTION CHANGE DETECTED in step 4:", previousFunction, "->", currentFunction)
+      setHasInteracted(true)
+    }
+    setPreviousFunction(currentFunction || "")
+  }, [currentFunction, currentStep, previousFunction])
 
   useEffect(() => {
     if (!isVisible || !currentStepData) return
@@ -136,13 +157,64 @@ export function TutorialSystem({
     if (!currentStepData.isObservationOnly) {
       const interactiveElements = document.querySelectorAll('button, input, [role="slider"], .draggable-point')
       interactiveElements.forEach((el) => {
-        if (
-          !el.closest(currentStepData.target) &&
-          currentStepData.target !== "fairy" &&
-          currentStepData.target !== "completion"
-        ) {
-          el.classList.add("tutorial-blocked")
-          ;(el as HTMLElement).style.pointerEvents = "none"
+        // ✅ CORREGIDO: Lógica especial para paso 4 del modo avanzado
+        const isFunctionButton = el.closest('[data-function-button]') || 
+                                el.textContent?.includes('Parábola') || 
+                                el.textContent?.includes('Onda') || 
+                                el.textContent?.includes('Cúbica')
+        
+        // En paso 4 del modo avanzado, solo permitir botones de función
+        const isStep4Advanced = currentStep === 4 && currentStepData.target === "#function-selector"
+        
+        // En paso 5 del modo avanzado, solo permitir botones de aproximación
+        const isStep5Advanced = currentStep === 5 && currentStepData.target === "#approximation-type"
+        const isApproximationButton = el.closest('#approximation-type') || 
+                                    el.textContent?.includes('Hechizo') ||
+                                    el.textContent?.includes('Izquierdo') ||
+                                    el.textContent?.includes('Derecho') ||
+                                    el.textContent?.includes('Central') ||
+                                    el.textContent?.includes('⬅️') ||
+                                    el.textContent?.includes('➡️') ||
+                                    el.textContent?.includes('🎯') ||
+                                    el.closest('button[onclick*="setApproximationType"]')
+        
+        // ✅ CORREGIDO: No bloquear botones de pista en ningún paso
+        const isHintButton = el.textContent?.includes('Necesito una pista') || 
+                            el.textContent?.includes('pista')
+        
+        if (isStep4Advanced) {
+          // Solo bloquear elementos que NO sean botones de función
+          if (!isFunctionButton) {
+            el.classList.add("tutorial-blocked")
+            ;(el as HTMLElement).style.pointerEvents = "none"
+          }
+        } else if (isStep5Advanced) {
+          // Solo bloquear elementos que NO sean botones de aproximación o pista
+          console.log("🔍 STEP 5 BLOCKING CHECK:", {
+            element: el,
+            textContent: el.textContent,
+            isApproximationButton,
+            isHintButton,
+            willBlock: !isApproximationButton && !isHintButton,
+            isButton: el.tagName === 'BUTTON',
+            hasOnClick: el.hasAttribute('onclick'),
+            parentId: el.closest('#approximation-type') ? 'FOUND' : 'NOT_FOUND'
+          })
+          if (!isApproximationButton && !isHintButton) {
+            el.classList.add("tutorial-blocked")
+            ;(el as HTMLElement).style.pointerEvents = "none"
+          }
+        } else {
+          // Lógica normal para otros pasos
+          if (
+            !el.closest(currentStepData.target) &&
+            currentStepData.target !== "fairy" &&
+            currentStepData.target !== "completion" &&
+            !isFunctionButton
+          ) {
+            el.classList.add("tutorial-blocked")
+            ;(el as HTMLElement).style.pointerEvents = "none"
+          }
         }
       })
     }

@@ -192,7 +192,7 @@ const TUTORIAL_STEPS_ADVANCED: TutorialStep[] = [
     position: { x: 150, y: 300 },
     action: "Cambia el tipo de aproximación",
     fairyMessage: "¡Cada tipo de aproximación da resultados diferentes! ¡Experimenta para encontrar el mejor!",
-    hint: "⚖️ Centro suele ser más preciso, pero izquierda y derecha son útiles para entender límites. ¡La elección depende de tu objetivo!",
+    hint: "🧙‍♂️ **Hechizo Izquierdo**: Usa el valor de la función en el extremo izquierdo de cada rectángulo. **Hechizo Derecho**: Usa el valor en el extremo derecho. **Hechizo Central**: Usa el valor en el punto medio. ¡El Central suele ser más preciso para funciones suaves!",
     requirement: (approximationType: string) => {
       console.log("[v0] Advanced: Checking approximation type requirement:", approximationType)
       const hasChanged = approximationType && approximationType !== "middle"
@@ -217,7 +217,7 @@ const TUTORIAL_STEPS_ADVANCED: TutorialStep[] = [
 export default function RiemannGarden() {
   // State management
   const [mode, setMode] = useState<"guided" | "free">("free")
-  const [currentFunction, setCurrentFunction] = useState<FunctionType>("quadratic")
+  const [currentFunction, setCurrentFunction] = useState<FunctionType>("quadratic") // ✅ Por defecto: Parábola Mágica
   const [partitions, setPartitions] = useState([8])
   const [leftLimit, setLeftLimit] = useState([-2])
   const [rightLimit, setRightLimit] = useState([4])
@@ -759,11 +759,11 @@ export default function RiemannGarden() {
                         variant={currentFunction === func ? "default" : "outline"}
                         size="sm"
                         className="w-full justify-start text-xs"
-                        disabled={mode === "guided" && tutorialStep > 0 && tutorialStep !== 4 && tutorialStep !== 5}
+                        disabled={false}
                       >
-                        {func === "quadratic" && "🌺 Parábola"}
-                        {func === "sine" && "🌊 Seno"}
-                        {func === "cubic" && "🌿 Cúbica"}
+                        {func === "quadratic" && "🌺 Parábola Mágica"}
+                        {func === "sine" && "🌊 Onda Senoidal"}
+                        {func === "cubic" && "🌿 Curva Cúbica"}
                       </Button>
                     ))}
                   </div>
@@ -867,13 +867,13 @@ export default function RiemannGarden() {
                   </div>
 
                   {/* Approximation Type */}
-                  <div className="mb-2">
+                  <div className="mb-2" id="approximation-type">
                     <h4 className="text-xs font-medium text-green-700 mb-1">Tipo de Hechizo</h4>
                     <div className="grid grid-cols-3 gap-1">
                       {[
-                        { key: "left", label: "⬅️", desc: "Izq" },
-                        { key: "right", label: "➡️", desc: "Der" },
-                        { key: "middle", label: "🎯", desc: "Cen" },
+                        { key: "left", label: "⬅️", desc: "Hechizo Izquierdo" },
+                        { key: "right", label: "➡️", desc: "Hechizo Derecho" },
+                        { key: "middle", label: "🎯", desc: "Hechizo Central" },
                       ].map((type) => (
                         <Button
                           key={type.key}
@@ -881,7 +881,7 @@ export default function RiemannGarden() {
                           variant={approximationType === type.key ? "default" : "outline"}
                           size="sm"
                           className="flex flex-col h-10 text-xs"
-                          disabled={mode === "guided" && tutorialStep > 0 && tutorialStep !== 6}
+                          disabled={mode === "guided" && tutorialStep > 0 && tutorialStep !== 5 && tutorialStep !== 6}
                         >
                           <span>{type.label}</span>
                           <span className="text-xs">{type.desc}</span>
